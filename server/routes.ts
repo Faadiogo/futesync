@@ -1,19 +1,19 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { storage } from "./storage";
+import { getStorage } from "./storage";
 import { insertUserSchema, insertMatchSchema, insertPostSchema, insertCommentSchema, insertRatingSchema } from "@shared/schema";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
-interface AuthenticatedRequest extends Express.Request {
+interface AuthenticatedRequest extends Request {
   user?: { id: string; email: string; role: string };
 }
 
 // JWT middleware
-const authenticate = async (req: AuthenticatedRequest, res: Express.Response, next: Express.NextFunction) => {
+const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const token = req.headers.authorization?.replace("Bearer ", "");
     if (!token) {
@@ -35,7 +35,7 @@ const authenticate = async (req: AuthenticatedRequest, res: Express.Response, ne
 };
 
 // Role-based access control
-const requireRole = (roles: string[]) => (req: AuthenticatedRequest, res: Express.Response, next: Express.NextFunction) => {
+const requireRole = (roles: string[]) => (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   if (!req.user || !roles.includes(req.user.role)) {
     return res.status(403).json({ message: "Insufficient permissions" });
   }
@@ -82,6 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {
+      const storage = await getStorage();
       const userData = insertUserSchema.parse(req.body);
       
       // Check if user exists
@@ -107,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role }, token });
     } catch (error) {
       console.error("Registration error:", error);
-      res.status(400).json({ message: "Invalid data", error: error.message });
+      res.status(400).json({ message: "Invalid data", error: (error as Error).message });
     }
   });
 

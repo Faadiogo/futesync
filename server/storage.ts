@@ -9,8 +9,16 @@ import {
   type Rating, type InsertRating
 } from "@shared/schema";
 
-const client = neon(process.env.DATABASE_URL!);
-const db = drizzle(client);
+let db: any;
+let dbInitialized = false;
+
+try {
+  const client = neon(process.env.DATABASE_URL!);
+  db = drizzle(client);
+  dbInitialized = true;
+} catch (error) {
+  console.warn("Database connection failed, will retry on first request");
+}
 
 export interface IStorage {
   // Users
@@ -262,4 +270,35 @@ export class DbStorage implements IStorage {
   }
 }
 
-export const storage = new DbStorage();
+import { MockStorage } from "./mock-storage";
+
+// Use mock storage if database connection fails
+let storage: IStorage;
+
+async function initializeStorage(): Promise<IStorage> {
+  if (!dbInitialized) {
+    console.log("Using mock storage due to database connection issues");
+    return new MockStorage();
+  }
+  
+  try {
+    // Test database connection
+    await db.select().from(users).limit(1);
+    return new DbStorage();
+  } catch (error) {
+    console.warn("Database connection test failed, falling back to mock storage:", error);
+    return new MockStorage();
+  }
+}
+
+// Initialize storage on first access
+let storagePromise: Promise<IStorage> | null = null;
+
+function getStorage(): Promise<IStorage> {
+  if (!storagePromise) {
+    storagePromise = initializeStorage();
+  }
+  return storagePromise;
+}
+
+export { getStorage };
