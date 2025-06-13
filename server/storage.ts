@@ -3,10 +3,13 @@ import { neon } from "@neondatabase/serverless";
 import { eq, desc, and, sql, count } from "drizzle-orm";
 import { 
   users, matches, confirmations, statistics, posts, comments, ratings,
+  friendships, matchInvitations, matchFinances, userPayments, notifications,
   type User, type InsertUser, type Match, type InsertMatch,
   type Confirmation, type InsertConfirmation, type Statistics, type InsertStatistics,
   type Post, type InsertPost, type Comment, type InsertComment,
-  type Rating, type InsertRating
+  type Rating, type InsertRating, type Friendship, type InsertFriendship,
+  type MatchInvitation, type InsertMatchInvitation, type MatchFinance, type InsertMatchFinance,
+  type UserPayment, type InsertUserPayment, type Notification, type InsertNotification
 } from "@shared/schema";
 
 let db: any;
@@ -71,6 +74,47 @@ export interface IStorage {
     totalAssists: number;
     averageRating: number;
     attendanceRate: number;
+  }>;
+  
+  // Friendships
+  createFriendship(friendship: InsertFriendship): Promise<Friendship>;
+  getFriendsByUser(userId: string): Promise<User[]>;
+  getFriendRequests(userId: string): Promise<Friendship[]>;
+  updateFriendship(id: string, status: string): Promise<Friendship>;
+  
+  // Match Invitations
+  createMatchInvitation(invitation: InsertMatchInvitation): Promise<MatchInvitation>;
+  getMatchInvitations(matchId: string): Promise<MatchInvitation[]>;
+  getUserInvitations(userId: string): Promise<MatchInvitation[]>;
+  updateMatchInvitation(id: string, status: string): Promise<MatchInvitation>;
+  joinMatchByCode(userId: string, code: string): Promise<Match>;
+  
+  // Financial Control
+  createMatchFinance(finance: InsertMatchFinance): Promise<MatchFinance>;
+  getMatchFinances(matchId: string): Promise<MatchFinance[]>;
+  createUserPayment(payment: InsertUserPayment): Promise<UserPayment>;
+  getUserPayments(userId: string, matchId?: string): Promise<UserPayment[]>;
+  updateUserPayment(id: string, payment: Partial<InsertUserPayment>): Promise<UserPayment>;
+  getMatchFinancialReport(matchId: string): Promise<{
+    totalRevenue: number;
+    totalExpenses: number;
+    balance: number;
+    pendingPayments: number;
+  }>;
+  
+  // Notifications
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getUserNotifications(userId: string): Promise<Notification[]>;
+  markNotificationRead(id: string): Promise<Notification>;
+  
+  // Plan Limits
+  checkUserPlanLimits(userId: string): Promise<{
+    canCreateMatch: boolean;
+    canJoinMatch: boolean;
+    createdMatches: number;
+    joinedMatches: number;
+    maxCreatedMatches: number;
+    maxJoinedMatches: number;
   }>;
 }
 
