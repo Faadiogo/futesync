@@ -22,8 +22,12 @@ export class MockStorage implements IStorage {
   async createUser(user: InsertUser): Promise<User> {
     const newUser: User = {
       id: this.generateId(),
-      ...user,
+      name: user.name,
+      email: user.email,
+      password: user.password,
+      photoUrl: user.photoUrl || null,
       role: user.role || "player",
+      position: user.position || null,
       createdAt: new Date(),
     };
     this.users.push(newUser);

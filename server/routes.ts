@@ -15,6 +15,7 @@ interface AuthenticatedRequest extends Request {
 // JWT middleware
 const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const storage = await getStorage();
     const token = req.headers.authorization?.replace("Bearer ", "");
     if (!token) {
       return res.status(401).json({ message: "No token provided" });
