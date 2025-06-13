@@ -82,6 +82,10 @@ export const ratings = pgTable("ratings", {
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+}).extend({
+  photoUrl: z.string().optional(),
+  position: z.string().optional(),
+  role: z.string().optional().default("player"),
 });
 
 export const insertMatchSchema = createInsertSchema(matches).omit({

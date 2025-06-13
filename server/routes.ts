@@ -106,7 +106,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role }, token });
     } catch (error) {
-      res.status(400).json({ message: "Invalid data" });
+      console.error("Registration error:", error);
+      res.status(400).json({ message: "Invalid data", error: error.message });
     }
   });
 
