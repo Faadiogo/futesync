@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
+import { useWebSocket } from "@/hooks/use-websocket";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import Home from "@/pages/home";
@@ -15,6 +16,8 @@ import Navigation from "@/components/layout/navigation";
 import Sidebar from "@/components/layout/sidebar";
 
 function AuthenticatedRoutes() {
+  useWebSocket(); // Initialize WebSocket connection
+  
   return (
     <div className="min-h-screen bg-slate-50">
       <Sidebar />
@@ -53,12 +56,10 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <TooltipProvider>
+      <Toaster />
+      <Router />
+    </TooltipProvider>
   );
 }
 
